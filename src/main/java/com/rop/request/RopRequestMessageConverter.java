@@ -4,30 +4,35 @@
  */
 package com.rop.request;
 
-import com.rop.MessageFormat;
-import com.rop.RopException;
-import com.rop.RopRequestParseException;
-import com.rop.impl.SimpleRopRequestContext;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.core.convert.converter.ConditionalGenericConverter;
-import org.springframework.http.converter.HttpMessageConversionException;
-import org.springframework.util.Assert;
+import java.io.StringReader;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import java.io.StringReader;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.core.convert.converter.ConditionalGenericConverter;
+import org.springframework.http.converter.HttpMessageConversionException;
+import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import com.rop.MessageFormat;
+import com.rop.RopException;
+import com.rop.RopRequestParseException;
+import com.rop.impl.SimpleRopRequestContext;
+import com.rop.jackson.CustomJaxbAnnotationIntrospector;
 
 /**
  * <pre>
@@ -44,11 +49,11 @@ public class RopRequestMessageConverter implements ConditionalGenericConverter {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {
-        AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
+        AnnotationIntrospector introspector = new  CustomJaxbAnnotationIntrospector(TypeFactory.defaultInstance()); ;
         SerializationConfig serializationConfig = objectMapper.getSerializationConfig();
-        serializationConfig = serializationConfig.without(SerializationConfig.Feature.WRAP_ROOT_VALUE)
-                                                 .withAnnotationIntrospector(introspector);
-        objectMapper.setSerializationConfig(serializationConfig);
+        serializationConfig = serializationConfig.without(SerializationFeature.WRAP_ROOT_VALUE)
+                                                 .with(introspector);
+        objectMapper.setConfig(serializationConfig);
     }
 
 
@@ -71,7 +76,7 @@ public class RopRequestMessageConverter implements ConditionalGenericConverter {
     public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
         try {
             if (SimpleRopRequestContext.messageFormat.get() == MessageFormat.json) {//输入格式为JSON
-                JsonParser jsonParser = objectMapper.getJsonFactory().createJsonParser((String) source);
+                JsonParser jsonParser = objectMapper.getFactory().createParser((String) source);
                 return jsonParser.readValueAs(targetType.getObjectType());
             } else {
                 Unmarshaller unmarshaller = createUnmarshaller(targetType.getObjectType());

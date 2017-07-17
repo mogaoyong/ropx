@@ -1,4 +1,8 @@
-﻿1.0.7-SNAPSHOT
+﻿1.0.8
+1.change jackson version to 2.8.8
+2.为了避免使用axios.js发起ajax请求时先通过发送OPTIONS预检请求造成业务数据处理出错，需要在AnnotationServletServiceRouter类中对OPTIONS请求做处理
+3.由于JaxbAnnotationIntrospector会导致@JsonIgnore注解失效，在CustomJaxbAnnotationIntrospector.java中对@JsonIgnore注解做了单独处理
+1.0.7-SNAPSHOT
 1.com.rop.response.ErrorResponse添加addSubError(SubError subError)方法；
 
 addSubError(SubError subError)

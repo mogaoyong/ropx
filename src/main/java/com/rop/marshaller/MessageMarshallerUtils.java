@@ -3,6 +3,17 @@
  */
 package com.rop.marshaller;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
@@ -10,16 +21,6 @@ import com.rop.MessageFormat;
 import com.rop.RopException;
 import com.rop.RopMarshaller;
 import com.rop.RopRequest;
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * <pre>
@@ -41,8 +42,8 @@ public class MessageMarshallerUtils {
 
     static {
         SerializationConfig serializationConfig = jsonObjectMapper.getSerializationConfig();
-        serializationConfig = serializationConfig.without(SerializationConfig.Feature.WRAP_ROOT_VALUE)
-                .with(SerializationConfig.Feature.INDENT_OUTPUT);
+        serializationConfig = serializationConfig.without(SerializationFeature.WRAP_ROOT_VALUE)
+                .with(SerializationFeature.INDENT_OUTPUT);
     }
 
     private static XmlMapper xmlObjectMapper = new XmlMapper();
@@ -117,7 +118,7 @@ public class MessageMarshallerUtils {
         ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
         try {
             if (format == MessageFormat.json) {
-                JsonGenerator jsonGenerator = jsonObjectMapper.getJsonFactory().createJsonGenerator(bos, JsonEncoding.UTF8);
+                JsonGenerator jsonGenerator = jsonObjectMapper.getFactory().createGenerator(bos, JsonEncoding.UTF8);
                 jsonObjectMapper.writeValue(jsonGenerator, object);
             } else {
                 xmlRopResponseMarshaller.marshaller(object, bos);

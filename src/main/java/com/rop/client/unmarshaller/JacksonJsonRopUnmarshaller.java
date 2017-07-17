@@ -4,12 +4,22 @@
  */
 package com.rop.client.unmarshaller;
 
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import com.rop.RopException;
 import com.rop.client.RopUnmarshaller;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+
+
+
+
+
+
+
+import com.rop.jackson.CustomJaxbAnnotationIntrospector;
 
 import java.io.IOException;
 
@@ -37,11 +47,11 @@ public class JacksonJsonRopUnmarshaller implements RopUnmarshaller {
     private ObjectMapper getObjectMapper() throws IOException {
         if (this.objectMapper == null) {
             ObjectMapper objectMapper = new ObjectMapper();
-            AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
+            AnnotationIntrospector introspector =  new  CustomJaxbAnnotationIntrospector(TypeFactory.defaultInstance()); //new JaxbAnnotationIntrospector();
             SerializationConfig serializationConfig = objectMapper.getSerializationConfig();
-            serializationConfig = serializationConfig.without(SerializationConfig.Feature.WRAP_ROOT_VALUE)
-                                                     .withAnnotationIntrospector(introspector);
-            objectMapper.setSerializationConfig(serializationConfig);
+            serializationConfig = serializationConfig.without(SerializationFeature.WRAP_ROOT_VALUE)
+                                                     .with(introspector);
+            objectMapper.setConfig(serializationConfig);
             this.objectMapper = objectMapper;
         }
         return this.objectMapper;

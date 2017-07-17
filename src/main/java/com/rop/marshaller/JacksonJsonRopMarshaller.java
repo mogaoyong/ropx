@@ -4,18 +4,22 @@
  */
 package com.rop.marshaller;
 
-import com.rop.RopException;
-import com.rop.RopMarshaller;
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-
 import java.io.IOException;
 import java.io.OutputStream;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
+import com.rop.RopException;
+import com.rop.RopMarshaller;
+import com.rop.jackson.CustomJaxbAnnotationIntrospector;
 
 /**
  * <pre>
@@ -31,7 +35,9 @@ public class JacksonJsonRopMarshaller implements RopMarshaller {
 
     public void marshaller(Object object, OutputStream outputStream) {
         try {
-            JsonGenerator jsonGenerator = getObjectMapper().getJsonFactory().createJsonGenerator(outputStream, JsonEncoding.UTF8);
+            JsonGenerator jsonGenerator = getObjectMapper().getFactory().createGenerator(outputStream, JsonEncoding.UTF8);
+            
+            
             getObjectMapper().writeValue(jsonGenerator, object);
         } catch (IOException e) {
             throw new RopException(e);
@@ -41,14 +47,14 @@ public class JacksonJsonRopMarshaller implements RopMarshaller {
     private ObjectMapper getObjectMapper() throws IOException {
         if (this.objectMapper == null) {
             ObjectMapper objectMapper = new ObjectMapper();
-            AnnotationIntrospector introspector = new JaxbAnnotationIntrospector();
+            AnnotationIntrospector introspector = new  CustomJaxbAnnotationIntrospector(TypeFactory.defaultInstance()); 
             SerializationConfig serializationConfig = objectMapper.getSerializationConfig();
-            serializationConfig = serializationConfig.without(SerializationConfig.Feature.WRAP_ROOT_VALUE)
-                    .with(SerializationConfig.Feature.INDENT_OUTPUT)
-                    .withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
-                    .withSerializationInclusion(JsonSerialize.Inclusion.NON_EMPTY)
-                    .withAnnotationIntrospector(introspector);
-            objectMapper.setSerializationConfig(serializationConfig);
+            serializationConfig = serializationConfig.without(SerializationFeature.WRAP_ROOT_VALUE)
+                    .with(SerializationFeature.INDENT_OUTPUT)
+                    .withSerializationInclusion(JsonInclude.Include.NON_NULL)
+                    .withSerializationInclusion(JsonInclude.Include.NON_EMPTY)
+                    .with(introspector);
+            objectMapper.setConfig(serializationConfig);
             this.objectMapper = objectMapper;
         }
         return this.objectMapper;
